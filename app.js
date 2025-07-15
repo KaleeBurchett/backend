@@ -1,22 +1,40 @@
-//setup.. this is similar to when we use our default tags in HTML
 const express = require("express")
-//activates or tells this app variable to be an express server
-const app = express()
-const router = express.Router()
+const Song = require("./models/songs")
+var cors = require('cors')
 
-//start the web server... app.listen(portnumber, function)
-app.listen(3000,function() {
-    console.log("Listening on port 3000")
+const app = express();
+app.use(cors())
+
+
+app.use(express.json());
+
+const router = express.Router();
+
+//grab all the songs in a database
+router.get("/songs", async(req, res) => {
+    try{
+        const songs = await Song.find({})
+        res.send(songs)
+        console.log(songs)
+    }
+    catch (err){
+        console.log(err)
+    }
 })
 
-//making an api using routes
-//routes are used to handle browser requeses. They look like URLs. The difference is that when a browser requests a route, it is dynamically handled by using a function.
 
-//GET or a regular request when someone goes to http://localhost:3000/hello. When using a function in a route, we almost always have a parameter or handle a response and a request.
-app.get("/hello", function(req, res) {
-    res.send("<h1>Hello Express</h1>")
+router.post("/songs", async(req, res) =>{
+    try{
+        const song = await new Song(req.body)
+        await song.save()
+        res.status(201).jason(song)
+        console.log(song)
+    }
+    catch(err){ 
+        res.status(400).send(err)
+    }
 })
 
-app.get("/goodbye", function(req, res) {
-    res.send("<h1>Goodbye Express!</h1>")
-});
+//all requests that usually use an api start with /api... so the url would be localhost:3000/api/songs
+app.use("/api", router)
+app.listen(3000)
